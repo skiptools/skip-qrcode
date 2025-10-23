@@ -188,37 +188,22 @@ struct AdvancedScannerView: View {
 - Torch/flashlight control
 - Portrait orientation
 
-**Permissions**: Automatically included in the package's `AndroidManifest.xml`
+**Permissions**: Automatically merged from the package's `AndroidManifest.xml`:
+- `android.permission.CAMERA`
+- Camera hardware features (optional)
+
+**Activities**: Scanner activities are automatically registered:
+- `skip.qrcode.MLKitScanActivity` - Main scanner with camera
+- `skip.qrcode.ScanHostActivity` - Activity launcher/bridge
 
 ## API Reference
 
-### iOS: `BarcodeScannerView`
+### `AndroidBarcodeScanner`
 
-A SwiftUI view that embeds the iOS barcode scanner.
-
-```swift
-public struct BarcodeScannerView: UIViewControllerRepresentable {
-    public init(onResult: @escaping (String) -> Void)
-}
-```
-
-**Parameters:**
-- `onResult`: Callback invoked when a barcode is scanned. Receives the barcode string.
-
-**Usage:**
-```swift
-BarcodeScannerView { scannedCode in
-    print("Scanned: \(scannedCode)")
-}
-.ignoresSafeArea() // Recommended for full-screen display
-```
-
-### Android: `AndroidBarcodeScanner`
-
-A utility enum for launching the Android scanner.
+A utility struct for launching the Android scanner.
 
 ```swift
-public enum AndroidBarcodeScanner {
+public struct AndroidBarcodeScanner {
     public static func scan(completion: @escaping @Sendable (String?) -> Void)
 }
 ```
@@ -250,23 +235,35 @@ SkipQRCode supports all common 1D and 2D barcode formats:
 
 ## Architecture
 
-SkipQRCode is a **Skip Fuse native package**, which means:
+SkipQRCode is a **transpiled Skip package with bridging support**, which means:
 
-- ✅ **No Transpilation**: Swift code on iOS calls native frameworks directly
-- ✅ **Native Bridge**: Swift on Android bridges to Kotlin via Skip's `AnyDynamicObject`
+- ✅ **iOS**: Direct Swift → VisionKit (native iOS framework)
+- ✅ **Android**: Swift → Transpiled Kotlin → ML Kit + CameraX
+- ✅ **Bridging**: Automatically bridges to native SkipFuse apps
 - ✅ **Platform Optimized**: Uses best-in-class libraries for each platform
-- ✅ **High Performance**: Native execution on both iOS and Android
+- ✅ **Zero Setup**: Import once, works on both platforms
 
 ### Component Overview
 
 ```
 iOS Side:
-  SwiftUI → BarcodeScannerView → VisionKit
+  SwiftUI → VisionKit DataScannerViewController
 
-Android Side:
-  SwiftUI → AndroidBarcodeScanner → ScanHostActivity → MLKitScanActivity
-                                      (Kotlin)           (CameraX + ML Kit)
+Android Side (Transpiled):
+  Swift → AndroidBarcodeScanner.swift
+    ↓ (transpiles to)
+  Kotlin → ScanHostActivity → MLKitScanActivity
+            (activity trampoline)  (CameraX + ML Kit scanner)
 ```
+
+### How It Works
+
+1. **On iOS**: Uses Apple's VisionKit for native barcode scanning
+2. **On Android**: 
+   - Swift code transpiles to Kotlin
+   - Launches native Android Activities with ML Kit
+   - Camera preview rendered programmatically (no XML resources)
+   - Results passed back via polling mechanism
 
 ## Requirements
 

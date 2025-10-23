@@ -1,0 +1,7 @@
+# Configuration file for https://skip.tools project
+#
+# Kotlin dependencies and Gradle build options for this module can be configured here
+
+# this is a natively-compiled SkipFuse module
+skip:
+  mode: 'native'

@@ -14,14 +14,14 @@
         <activity
             android:name="skip.qrcode.MLKitScanActivity"
             android:exported="false"
-            android:theme="@style/Theme.Transparent.Fullscreen"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:screenOrientation="portrait" />
         
         <!-- Scanner Host Activity (trampoline) -->
         <activity
             android:name="skip.qrcode.ScanHostActivity"
             android:exported="false"
-            android:theme="@style/Theme.Transparent.Fullscreen"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:screenOrientation="portrait" />
     </application>
 </manifest>

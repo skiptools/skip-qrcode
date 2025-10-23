@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -41,38 +42,85 @@ class MLKitScanActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "onCreate() called")
         super.onCreate(savedInstanceState)
         
         try {
-            Log.d(TAG, "Setting content view...")
-            setContentView(R.layout.activity_mlkit_scan)
+            
+            // Create layout programmatically to avoid resource merging issues
+            val rootLayout = androidx.constraintlayout.widget.ConstraintLayout(this).apply {
+                setBackgroundColor(android.graphics.Color.BLACK)
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            }
+            
+            // Camera preview
+            previewView = PreviewView(this).apply {
+                id = View.generateViewId()
+                layoutParams = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
+                )
+            }
+            rootLayout.addView(previewView)
+            
+            // Bottom controls container
+            val bottomControls = android.widget.LinearLayout(this).apply {
+                id = View.generateViewId()
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER
+                setPadding(48, 48, 48, 48)
+                layoutParams = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                }
+            }
+            
+            // Torch button
+            torchButton = Button(this).apply {
+                text = "Torch"
+                setTextColor(android.graphics.Color.WHITE)
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginEnd = 32
+                }
+            }
+            bottomControls.addView(torchButton)
+            
+            // Close button
+            closeButton = Button(this).apply {
+                text = "Close"
+                setTextColor(android.graphics.Color.WHITE)
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+            bottomControls.addView(closeButton)
+            
+            rootLayout.addView(bottomControls)
+            setContentView(rootLayout)
 
-            Log.d(TAG, "Finding views...")
-            previewView = findViewById(R.id.previewView)
-            torchButton = findViewById(R.id.torchButton)
-            closeButton = findViewById(R.id.closeButton)
-
-            Log.d(TAG, "Creating camera executor...")
             cameraExecutor = Executors.newSingleThreadExecutor()
 
             torchButton.setOnClickListener {
-                Log.d(TAG, "Torch button clicked")
                 toggleTorch()
             }
 
             closeButton.setOnClickListener {
-                Log.d(TAG, "Close button clicked")
                 setResult(Activity.RESULT_CANCELED)
                 finish()
             }
-
-            Log.d(TAG, "Checking camera permission...")
             if (hasCameraPermission()) {
-                Log.d(TAG, "Camera permission granted, starting camera")
                 startCamera()
             } else {
-                Log.d(TAG, "Camera permission not granted, requesting...")
                 requestCameraPermission()
             }
         } catch (e: Exception) {
@@ -114,18 +162,13 @@ class MLKitScanActivity : AppCompatActivity() {
     }
 
     private fun startCamera() {
-        Log.d(TAG, "startCamera() called")
         try {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-            Log.d(TAG, "Got camera provider future")
 
             cameraProviderFuture.addListener({
                 try {
-                    Log.d(TAG, "Camera provider listener called")
                     val cameraProvider = cameraProviderFuture.get()
-                    Log.d(TAG, "Got camera provider, binding use cases...")
                     bindCameraUseCases(cameraProvider)
-                    Log.d(TAG, "Camera use cases bound successfully")
                 } catch (e: Exception) {
                     Log.e(TAG, "Camera initialization failed", e)
                     Toast.makeText(this, "Failed to start camera: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -184,11 +227,9 @@ class MLKitScanActivity : AppCompatActivity() {
     }
 
     private fun toggleTorch() {
-        camera?.let { cam ->
-            val currentState = cam.cameraInfo.torchState.value ?: TorchState.OFF
-            val newState = currentState == TorchState.OFF
-            cam.cameraControl.enableTorch(newState)
-            torchButton.text = if (newState) "Torch On" else "Torch"
+        camera?.let {
+            val currentState = it.cameraInfo.torchState.value == TorchState.ON
+            it.cameraControl.enableTorch(!currentState)
         }
     }
 

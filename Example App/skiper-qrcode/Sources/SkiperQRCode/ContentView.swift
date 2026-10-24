@@ -32,7 +32,13 @@ struct ContentView: View {
                 }
                 
                 Button {
-                    isShowingScanner = true
+                    Task {
+                        switch await CameraAccess.request() {
+                        case .authorized: isShowingScanner = true
+                        case .denied: await CameraAccess.openSettings()
+                        default: break
+                        }
+                    }
                 } label: {
                     Label("Scan Code", systemImage: "qrcode.viewfinder")
                         .font(.headline)
@@ -76,17 +82,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isShowingScanner) {
             #if os(Android)
-            // Android: Use transparent view that immediately launches scanner
-            Color.clear
-                .onAppear {
-                    isShowingScanner = false
-                    AndroidBarcodeScanner.scan { code in
-                        if let code = code {
-                            scannedCode = code
-                            scanHistory.insert(code, at: 0)
-                        }
-                    }
-                }
+            // Android: SkipQRCode's scanner, which closes the sheet on the first code
+            QRScannerView { code in
+                scannedCode = code
+                scanHistory.insert(code, at: 0)
+            }
+            .ignoresSafeArea()
             #else
             // iOS: Use VisionKit DataScannerViewController
             if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {

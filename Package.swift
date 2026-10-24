@@ -11,16 +11,18 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://source.skip.tools/skip.git", from: "1.6.27"),
+        .package(url: "https://source.skip.tools/skip-ui.git", from: "1.0.0"),
         .package(url: "https://source.skip.tools/skip-foundation.git", from: "1.0.0")
     ],
     targets: [
         .target(name: "SkipQRCode", dependencies: [
-            .product(name: "SkipFoundation", package: "skip-foundation")
-        ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+            .product(name: "SkipFoundation", package: "skip-foundation"),
+            .product(name: "SkipUI", package: "skip-ui"),
+        ], plugins: [.plugin(name: "skipstone", package: "skip")]),
         .testTarget(name: "SkipQRCodeTests", dependencies: [
             "SkipQRCode",
             .product(name: "SkipTest", package: "skip")
-        ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
+        ], plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )
 
@@ -31,4 +33,3 @@ if Context.environment["SKIP_BRIDGE"] ?? "0" != "0" {
         target.dependencies += [.product(name: "SkipFuseUI", package: "skip-fuse-ui")]
     })
 }
-

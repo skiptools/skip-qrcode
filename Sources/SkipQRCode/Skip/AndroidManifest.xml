@@ -1,27 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Camera permission for barcode scanning -->
+    <!-- QRScannerView reads the camera; CameraAccess requests this permission at runtime -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
+    <!-- Optional, so devices without a camera can still install the app -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
 
     <application>
-        <!-- ML Kit Barcode Scanner Activity -->
+        <!-- Invisible activity that asks for camera access for CameraAccess.request() -->
         <activity
-            android:name="skip.qrcode.MLKitScanActivity"
+            android:name="skip.qrcode.CameraPermissionActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:screenOrientation="portrait" />
-        
-        <!-- Scanner Host Activity (trampoline) -->
-        <activity
-            android:name="skip.qrcode.ScanHostActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:screenOrientation="portrait" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
     </application>
 </manifest>

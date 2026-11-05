@@ -345,8 +345,3 @@ Built with [Skip](https://skip.dev) - Swift for iOS and Android
 **Technologies Used:**
 - iOS: VisionKit, SwiftUI
 - Android: ML Kit, CameraX, Kotlin, Jetpack Compose
-
-## License
-
-This software is licensed under the 
-[Mozilla Public License 2.0](https://www.mozilla.org/MPL/).
